@@ -1,0 +1,50 @@
+syntax = "proto3";
+option java_package = "xyz.seraphin.discordir";
+
+package bms.player.beatoraja.ir;
+
+service IRService {
+    rpc Login(LoginMessage) returns (Token) {}
+    rpc SendResult(Result) returns (Success) {}
+}
+
+message LoginMessage {
+    string id = 1;
+    string pass = 2;
+}
+
+message Token {
+    bool success = 1;
+    string token = 2;
+}
+
+message Success {
+    bool success = 1;
+    string status = 2;
+}
+
+message Result {
+    string md5 = 1;
+    int32 mode = 2;
+    int32 clear = 3;
+    int64 date = 4;
+    int32 pgreat = 5;
+    int32 great = 6;
+    int32 good = 7;
+    int32 bad = 8;
+    int32 mashpoor = 9;
+    int32 miss = 10;
+    int32 combo = 11;
+    int32 bp = 12;
+    int32 random = 13;
+    int32 fast = 14;
+    int32 slow = 15;
+    int32 notes = 16;
+    string title = 17;
+    string artist = 18;
+    string genre = 19;
+    double total = 20;
+    double bpm = 21;
+    int32 judge = 22;
+    string token = 23;
+}
