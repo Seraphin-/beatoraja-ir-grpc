@@ -6,6 +6,8 @@ import bms.player.beatoraja.TableData;
 import bms.player.beatoraja.CourseData;
 import bms.player.beatoraja.song.SongInformation;
 import bms.player.beatoraja.song.SongData;
+import bms.player.beatoraja.play.JudgeProperty;
+import java.util.Arrays;
 import xyz.seraphin.discordir.IRServiceGrpc.IRServiceBlockingStub;
 import xyz.seraphin.discordir.IRServiceGrpc;
 import xyz.seraphin.discordir.DiscordIRService.*;
@@ -64,7 +66,8 @@ public class DiscordIRConnection implements IRConnection {
     public IRResponse<Object> sendPlayData(SongData model, IRScoreData score) {
         ResponseCreator<Object> rc = new ResponseCreator<Object>();
         Result.Builder r = Result.newBuilder().setToken(this.token);
-        r.setMd5(model.getMd5()).setMode(score.getMode()).setClear(score.getClear()).setDate(score.getDate());
+        r.setMd5(model.getMd5()).setSha256(model.getSha256()).setClear(score.getClear());
+        r.setLr2Oraja(Arrays.stream(JudgeProperty.class.getFields()).anyMatch(p -> p.getName().equals("LR2_JUDGE_WINDOWS")));
         r.setPgreat(score.getJudgeCount(0, true)+score.getJudgeCount(0, false));
         r.setGreat(score.getJudgeCount(1, true)+score.getJudgeCount(1, false));
         r.setGood(score.getJudgeCount(2, true)+score.getJudgeCount(2, false));
@@ -78,7 +81,8 @@ public class DiscordIRConnection implements IRConnection {
             fast += score.getJudgeCount(i, true);
             slow += score.getJudgeCount(i, false);
         }
-        r.setFast(fast).setSlow(slow).setNotes(model.getNotes()).setTitle(model.getFullTitle()).setArtist(model.getFullArtist()).setGenre(model.getGenre()).setJudge(model.getJudge()).setBpm(model.getInformation().getMainbpm()).setTotal(model.getInformation().getTotal());
+        r.setFast(fast).setSlow(slow).setNotes(model.getNotes()).setTitle(model.getFullTitle()).setArtist(model.getFullArtist()).setGenre(model.getGenre()).setJudge(model.getJudge());
+        r.setBpm(model.getInformation().getMainbpm()).setTotal(model.getInformation().getTotal()).setAvgdensity(model.getInformation().getDensity()).setPeakdensity(model.getInformation().getDensity()).setEnddensity(model.getInformation().getEnddensity());
         Success s;
         try {
             s = this.stub.sendResult(r.build());
