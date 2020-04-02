@@ -82,7 +82,7 @@ public class DiscordIRConnection implements IRConnection {
             slow += score.getJudgeCount(i, false);
         }
         r.setFast(fast).setSlow(slow).setNotes(model.getNotes()).setTitle(model.getFullTitle()).setArtist(model.getFullArtist()).setGenre(model.getGenre()).setJudge(model.getJudge());
-        r.setBpm(model.getInformation().getMainbpm()).setTotal(model.getInformation().getTotal()).setAvgdensity(model.getInformation().getDensity()).setPeakdensity(model.getInformation().getDensity()).setEnddensity(model.getInformation().getEnddensity());
+        r.setBpm(model.getInformation().getMainbpm()).setTotal(model.getInformation().getTotal()).setAvgdensity(model.getInformation().getDensity()).setPeakdensity(model.getInformation().getPeakdensity()).setEnddensity(model.getInformation().getEnddensity());
         Success s;
         try {
             s = this.stub.sendResult(r.build());
