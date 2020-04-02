@@ -11,6 +11,7 @@ service IRService {
 message LoginMessage {
     string id = 1;
     string pass = 2;
+    string version = 3;
 }
 
 message Token {
@@ -23,31 +24,30 @@ message Success {
     string status = 2;
 }
 
-message Result {
+message SongInfo {
     string md5 = 1;
     string sha256 = 2;
-    bool lr2oraja = 3;
+    string title = 3;
+    string artist = 4;
+    string genre = 5;
+    int32 notes = 6;
+    double total = 7;
+    double bpm = 8;
+    int32 judge = 9;
+    double avgdensity = 10;
+    double peakdensity = 11;
+    double enddensity = 12;
+}
+
+message Result {
+    string token = 1;
+    bool lr2oraja = 2;
+    SongInfo info = 3;
     int32 clear = 4;
-    int32 pgreat = 5;
-    int32 great = 6;
-    int32 good = 7;
-    int32 bad = 8;
-    int32 mashpoor = 9;
-    int32 miss = 10;
-    int32 combo = 11;
-    int32 bp = 12;
-    int32 random = 13;
-    int32 fast = 14;
-    int32 slow = 15;
-    int32 notes = 16;
-    string title = 17;
-    string artist = 18;
-    string genre = 19;
-    double total = 20;
-    double bpm = 21;
-    int32 judge = 22;
-    double avgdensity = 23;
-    double peakdensity = 24;
-    double enddensity = 25;
-    string token = 26;
+    int32 combo = 5;
+    int32 bp = 6;
+    int32 random = 7;
+    repeated int32 hit = 8;
+    repeated int32 fast = 9;
+    repeated int32 slow = 10;
 }

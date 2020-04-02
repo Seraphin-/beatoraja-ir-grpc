@@ -8,6 +8,8 @@ import bms.player.beatoraja.song.SongInformation;
 import bms.player.beatoraja.song.SongData;
 import bms.player.beatoraja.play.JudgeProperty;
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import xyz.seraphin.discordir.IRServiceGrpc.IRServiceBlockingStub;
 import xyz.seraphin.discordir.IRServiceGrpc;
 import xyz.seraphin.discordir.DiscordIRService.*;
@@ -17,6 +19,7 @@ import io.grpc.ManagedChannel;
 public class DiscordIRConnection implements IRConnection {
     public static final String NAME = "Rennaisance Discord IR";
     public static final String HOME = "https://seraphin.xyz/";
+    public static final String VERSION = "1.0.2";
 
     private static final String GRPC_URL = "seraphin.xyz";
     private static final int GRPC_PORT = 20777;
@@ -34,7 +37,7 @@ public class DiscordIRConnection implements IRConnection {
 
     public IRResponse<Object> login(String id, String pass) {
         ResponseCreator<Object> rc = new ResponseCreator<Object>();
-        LoginMessage r = LoginMessage.newBuilder().setId(id).setPass(pass).build();
+        LoginMessage r = LoginMessage.newBuilder().setId(id).setPass(pass).setVersion(this.VERSION).build();
         Token token;
         try {
             token = this.stub.login(r);
@@ -42,7 +45,7 @@ public class DiscordIRConnection implements IRConnection {
             e.printStackTrace();
             return rc.create(false, "GRPC exception: " + e.getMessage(), null);
         }
-        if(!token.getSuccess()) return rc.create(false, "Invalid user/password combination", null);
+        if(!token.getSuccess()) return rc.create(false, token.getToken(), null);
         this.token = token.getToken();
         return rc.create(true, "Logged in", null);
     }
@@ -65,24 +68,23 @@ public class DiscordIRConnection implements IRConnection {
     }
     public IRResponse<Object> sendPlayData(SongData model, IRScoreData score) {
         ResponseCreator<Object> rc = new ResponseCreator<Object>();
-        Result.Builder r = Result.newBuilder().setToken(this.token);
-        r.setMd5(model.getMd5()).setSha256(model.getSha256()).setClear(score.getClear());
-        r.setLr2Oraja(Arrays.stream(JudgeProperty.class.getFields()).anyMatch(p -> p.getName().equals("LR2_JUDGE_WINDOWS")));
-        r.setPgreat(score.getJudgeCount(0, true)+score.getJudgeCount(0, false));
-        r.setGreat(score.getJudgeCount(1, true)+score.getJudgeCount(1, false));
-        r.setGood(score.getJudgeCount(2, true)+score.getJudgeCount(2, false));
-        r.setBad(score.getJudgeCount(3, true)+score.getJudgeCount(3, false));
-        r.setMashpoor(score.getJudgeCount(4, true)+score.getJudgeCount(4, false));
-        r.setMiss(score.getJudgeCount(5, true)+score.getJudgeCount(5, false));
-        r.setCombo(score.getCombo()).setBp(score.getMinbp()).setRandom(score.getRandom());
-        int fast = 0;
-        int slow = 0;
+        
+        SongInfo.Builder si = SongInfo.newBuilder().setMd5(model.getMd5()).setSha256(model.getSha256());
+        si.setNotes(model.getNotes()).setTitle(model.getFullTitle()).setArtist(model.getFullArtist()).setGenre(model.getGenre()).setJudge(model.getJudge());
+        si.setBpm(model.getInformation().getMainbpm()).setTotal(model.getInformation().getTotal()).setAvgdensity(model.getInformation().getDensity()).setPeakdensity(model.getInformation().getPeakdensity()).setEnddensity(model.getInformation().getEnddensity());
+        
+        List<Integer> fast = new ArrayList<>();
+        List<Integer> slow = new ArrayList<>();
+        List<Integer> hit = new ArrayList<>();
         for(int i = 0; i <= 5; i++) {
-            fast += score.getJudgeCount(i, true);
-            slow += score.getJudgeCount(i, false);
+            fast.add(score.getJudgeCount(i, true));
+            slow.add(score.getJudgeCount(i, false));
+            hit.add(score.getJudgeCount(i, true)+score.getJudgeCount(i, false));
         }
-        r.setFast(fast).setSlow(slow).setNotes(model.getNotes()).setTitle(model.getFullTitle()).setArtist(model.getFullArtist()).setGenre(model.getGenre()).setJudge(model.getJudge());
-        r.setBpm(model.getInformation().getMainbpm()).setTotal(model.getInformation().getTotal()).setAvgdensity(model.getInformation().getDensity()).setPeakdensity(model.getInformation().getPeakdensity()).setEnddensity(model.getInformation().getEnddensity());
+
+        Result.Builder r = Result.newBuilder().setToken(this.token).setInfo(si.build()).addAllHit(hit).addAllFast(fast).addAllSlow(slow).setClear(score.getClear());
+        r.setLr2Oraja(Arrays.stream(JudgeProperty.class.getFields()).anyMatch(p -> p.getName().equals("LR2_JUDGE_WINDOWS")));
+        r.setCombo(score.getCombo()).setBp(score.getMinbp()).setRandom(score.getRandom());
         Success s;
         try {
             s = this.stub.sendResult(r.build());
